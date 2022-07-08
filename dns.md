@@ -6,6 +6,7 @@ GoDaddy 建站神器
 
 
 ## 名词解释
+
 - TSIG: Transaction signatures
 - TKEY:
 - SIG(0)
@@ -18,7 +19,60 @@ GoDaddy 建站神器
 - RA: 表示“可用递归”。如果名字服务器支持递归查询,则在响应中将该比 特设置为 1
 
 
+## 原理
+
+
+
+## 配置
+
+```bash
+
+# 父域配置, /var/named/hank.com.zone
+hank.com.  IN SOA  admin.hank.com.    admin.hank.com. (
+        201802002   ;序列号
+        3H          ;刷新时间
+        10M         ;重试时间间隔
+        1W          ;过期时间
+        1D          ;无法解析时否定答案的TTL值
+        )
+
+hank.com.      IN   NS   ns1.hank.com.
+hank.com.      IN   NS   ns2.hank.com.
+ns1.hank.com.  IN   A    192.168.0.1
+ns2.hank.com.  IN   A    192.168.0.2
+
+# 子域授权
+sub.hank.com      IN   NS   ns1.sub.hank.com.
+sub.hank.com      IN   NS   ns2.sub.hank.com.
+ns1.sub.hank.com. IN   A    192.168.1.1
+ns2.sub.hank.com. IN   A    192.168.1.2
+
+
+# 子域配置, /etc/named.conf
+zone "sub.hank.com." IN {
+    type master;
+    file "sub.hank.com.zone";
+}
+
+# /var/named/sub.hank.com.zone
+
+sub.hank.com  IN SOA ..........
+sub.hank.com     IN  NS   ns1.sub.hank.com.
+sub.hank.com     IN  NS   ns2.sub.hank.com.
+ns1.sub.hank.com. IN   A    192.168.1.1
+ns2.sub.hank.com. IN   A    192.168.1.2
+
+# 可以增加父域没有配置的ns, 可以做ns的分布式
+sub.hank.com     IN  NS   ns1.xxx.com.
+sub.hank.com     IN  NS   ns2.xxx.com.
+
+# ns1.xxx.com.  ns2.xxx.com. 可以配置智能解析, 及多线路不同配置
+
+# ldns从父域拿到ns列表, 从子域也能拿到, 如何取舍?
+```
+
 ## Feature
+
 ### getaddrinfo工作原理
 http://www.cnblogs.com/battzion/p/4235562.html
 
@@ -289,5 +343,7 @@ dig www.a.com cname  # 查询到cname就不会继续查找了, cname还有cname�
 
 
 ## Ref
-https://www.bind9.net/download
-https://intodns.com/ywings.com
+
+- https://www.bind9.net/download
+- https://intodns.com/ywings.com
+- RFC: https://rfcs.io/dns
