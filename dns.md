@@ -172,22 +172,20 @@ SENDIP 是一个LINUX 下的命令行工具，可以通过命令行参数的方�
 - andriod与google pulibc dns之间的加密通讯方式
   - https://www.oschina.net/news/103504/google-public-dns-support-dot
 - https://www.icann.org/resources/pages/dns-resolvers-checking-current-trust-anchors-2018-06-28-zh
-### FAQ
-- zone文件每次更新要重新签名
-- 512问题
+
+
+### Glue 记录
+
+- 域名配置NS记录时，如果NS服务器为子域名，则必须配置NS的A记录
+
+```bash
+b.com  ns  a.b.com
+a.b.com A  x.x.x.x    # 需要指定此记录, 否则会又会查询b.com 导致循环
+
 ```
-由于历史原因，互联网物理链路最小MTU=576, 所有DNS限制UDP报文小于576，限制在512
-DNS UDP包没有字段标识报文ID，所以多余的数据只能被抛弃
-```
-- DNSSEC的用处
-```
-  - 配置安全的域名解析服务器(Resolver)，该服务器可以保护使用它的用户，防止被DNS欺骗攻击。这里只涉及数字签名的验证工作
-  - 配置安全的权威域名服务器(Name Server)，对权威域的资源记录进行签名，保护服务器不被域名欺骗攻击
-  - DLV旁路认证概念
-- 取消其AUTHORITY、 ADDITIONAL的返回,节省时间反复去查询权威服务器。如cp31.ott.cibntv.net 
-```
-- knot bug, 时间戳做随机数种子计算id，id后有增加操作, 导致id溢出
-- knot bug, 文件句柄关闭多次,产生abort
+
+- http://www.ricearth.com/article/5019046192866861
+
 
 
 ## 工程
@@ -340,6 +338,26 @@ bind不识别多cname情况
 ```bash
 dig www.a.com cname  # 查询到cname就不会继续查找了, cname还有cname也不会; a记录查询如果没有结果,会递归查询
 ```
+
+### zone文件每次更新要重新签名
+
+### 512问题
+```
+由于历史原因，互联网物理链路最小MTU=576, 所有DNS限制UDP报文小于576，限制在512
+DNS UDP包没有字段标识报文ID，所以多余的数据只能被抛弃
+```
+
+### DNSSEC的用处
+```
+  - 配置安全的域名解析服务器(Resolver)，该服务器可以保护使用它的用户，防止被DNS欺骗攻击。这里只涉及数字签名的验证工作
+  - 配置安全的权威域名服务器(Name Server)，对权威域的资源记录进行签名，保护服务器不被域名欺骗攻击
+  - DLV旁路认证概念
+- 取消其AUTHORITY、 ADDITIONAL的返回,节省时间反复去查询权威服务器。如cp31.ott.cibntv.net 
+
+```
+
+- knot bug, 时间戳做随机数种子计算id，id后有增加操作, 导致id溢出
+- knot bug, 文件句柄关闭多次,产生abort
 
 
 ## Ref
